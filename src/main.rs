@@ -1,34 +1,34 @@
 extern crate clap;
 extern crate regex;
 
-use clap::{Arg, App, SubCommand};
-use regex::{Regex, Captures};
-use core::borrow::{BorrowMut, Borrow};
+use clap::App;
+use core::borrow::Borrow;
+use regex::Regex;
 
 fn main() {
     let matches = App::new("sc4...snake-case camel-case converter")
         .version("0.1")
         .author("Taiga Nakayama <dora@dora-gt.jp>")
         .about("Converts snake-case to camel-case and vice versa.")
-        .args_from_usage("
+        .args_from_usage(
+            "
             -c, --case=[CASE] 'snake, camel, kebab'
             <INPUT> 'text you want to convert'
-        ")
+        ",
+        )
         .get_matches();
 
-    let input : &str = matches.value_of("INPUT").unwrap();
+    let input: &str = matches.value_of("INPUT").unwrap();
     let mut input = input.to_string();
     let mut cm = CaseManipulator::new(&mut input);
 
     let into_case = matches.value_of("case");
-    let into_case : Option<Cases> = match into_case {
-        Some(case) => {
-            match case {
-                "snake" => Some(Cases::SnakeCase),
-                "camel" => Some(Cases::CamelCase),
-                "kebab" => Some(Cases::KebabCase),
-                _ => None,
-            }
+    let into_case: Option<Cases> = match into_case {
+        Some(case) => match case {
+            "snake" => Some(Cases::SnakeCase),
+            "camel" => Some(Cases::CamelCase),
+            "kebab" => Some(Cases::KebabCase),
+            _ => None,
         },
         None => None,
     };
@@ -45,30 +45,28 @@ enum Cases {
 }
 
 struct CaseManipulator<'a> {
-    text : &'a mut str,
+    text: &'a mut str,
 }
 
 impl<'a> CaseManipulator<'a> {
     pub fn new(text: &'a mut str) -> Self {
-        CaseManipulator{
-            text,
-        }
+        CaseManipulator { text }
     }
 
     /// snake_case
-    pub fn is_snake_case (&self) -> bool {
+    pub fn is_snake_case(&self) -> bool {
         let regex = Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap();
         regex.is_match(self.text)
     }
 
     /// CamelCase
-    pub fn is_camel_case (&self) -> bool {
+    pub fn is_camel_case(&self) -> bool {
         let regex = Regex::new("^([A-Z][a-z]*)+$").unwrap();
         regex.is_match(self.text)
     }
 
     /// kebab-case
-    pub fn is_kebab_case (&self) -> bool {
+    pub fn is_kebab_case(&self) -> bool {
         let regex = Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap();
         regex.is_match(self.text)
     }
@@ -89,30 +87,27 @@ impl<'a> CaseManipulator<'a> {
     pub fn convert_into(&mut self, case: Cases) -> String {
         let mut joined = String::new();
         let items = match self.get_case() {
-            Some(case) => {
-                match case {
-                    Cases::SnakeCase => self.break_snake_case(),
-                    Cases::CamelCase => self.break_camel_case(),
-                    Cases::KebabCase => self.break_kebab_case(),
-                }
+            Some(case) => match case {
+                Cases::SnakeCase => self.break_snake_case(),
+                Cases::CamelCase => self.break_camel_case(),
+                Cases::KebabCase => self.break_kebab_case(),
             },
             _ => vec![self.text.borrow()],
         };
         match case {
             Cases::SnakeCase => joined.push_str(items.join("_").to_lowercase().as_str()),
-            Cases::CamelCase =>  {
+            Cases::CamelCase => {
                 for item in items {
                     for (index, item_char) in item.chars().into_iter().enumerate() {
                         let push_char = match index {
-                           0 => item_char.to_ascii_uppercase(),
-                            _=> item_char,
+                            0 => item_char.to_ascii_uppercase(),
+                            _ => item_char,
                         };
                         joined.push(push_char);
                     }
                 }
-            },
+            }
             Cases::KebabCase => joined.push_str(items.join("-").to_lowercase().as_str()),
-            _ => joined.push_str(items.join("").as_str()),
         };
         joined
     }
@@ -120,12 +115,10 @@ impl<'a> CaseManipulator<'a> {
     /// get most suitable conversion
     pub fn get_default_conversion(&self) -> Cases {
         match self.get_case() {
-            Some(case) => {
-                match case {
-                    Cases::SnakeCase => Cases::CamelCase,
-                    Cases::CamelCase => Cases::SnakeCase,
-                    Cases::KebabCase => Cases::CamelCase,
-                }
+            Some(case) => match case {
+                Cases::SnakeCase => Cases::CamelCase,
+                Cases::CamelCase => Cases::SnakeCase,
+                Cases::KebabCase => Cases::CamelCase,
             },
             None => Cases::CamelCase,
         }
@@ -137,12 +130,13 @@ impl<'a> CaseManipulator<'a> {
 
     fn break_camel_case(&self) -> Vec<&str> {
         let regex = Regex::new("[A-Z][a-z]*").unwrap();
-        regex.captures_iter(self.text).map(|capture|{ capture.get(0).unwrap().as_str() }).collect()
+        regex
+            .captures_iter(self.text)
+            .map(|capture| capture.get(0).unwrap().as_str())
+            .collect()
     }
 
     fn break_kebab_case(&self) -> Vec<&str> {
         self.text.split("-").collect()
     }
 }
-
-
