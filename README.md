@@ -10,7 +10,7 @@ $ cargo install --git https://github.com/dora-gt/sc4.git
 ## usage
 ```
 $ sc4 CamelCase
-camel-case
+camel_case
 
 $ sc4 snake_case
 SnakeCase
