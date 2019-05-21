@@ -1,9 +1,11 @@
+extern crate alfred;
 extern crate clap;
 extern crate regex;
 
 use clap::App;
 use core::borrow::Borrow;
 use regex::Regex;
+use std::io;
 
 fn main() {
     let matches = App::new("sc4...snake-case camel-case converter")
@@ -13,7 +15,8 @@ fn main() {
         .args_from_usage(
             "
             -c, --case=[CASE] 'snake, camel, kebab'
-            <INPUT> 'text you want to convert'
+            -a                'Output for Script Filter for Alfred'
+            <INPUT>           'text you want to convert'
         ",
         )
         .get_matches();
@@ -34,7 +37,21 @@ fn main() {
     };
     let into_case = into_case.unwrap_or(cm.get_default_conversion());
     let converted = cm.convert_into(into_case);
-    println!("{}", converted);
+
+    if matches.is_present("a") {
+        // output for Alfred
+        alfred::json::Builder::with_items(&[alfred::ItemBuilder::new(
+            "Copy ".to_owned() + &converted + " to Clipboard",
+        )
+        .subtitle("converted from ".to_owned() + &input)
+        .arg(&converted)
+        .into_item()])
+        .write(io::stdout())
+        .ok();
+    } else {
+        // output just the converted
+        println!("{}", converted);
+    }
 }
 
 #[derive(Debug)]

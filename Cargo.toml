@@ -1,9 +1,10 @@
 [package]
 name = "sc4"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Taiga Nakayama <dora@dora-gt.jp>"]
 edition = "2018"
 
 [dependencies]
 clap = "2.33.0"
 regex = "1.1.6"
+alfred = "4.0.1"
