@@ -13,6 +13,7 @@ lazy_static! {
     static ref REGEX_SNAKE_CASE: Regex = { Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap() };
     static ref REGEX_CAMEL_CASE: Regex = { Regex::new("^([A-Z][a-z]*)+$").unwrap() };
     static ref REGEX_KEBAB_CASE: Regex = { Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap() };
+    static ref REGEX_CAMEL_CASE_BREAK_DOWN: Regex = { Regex::new("[A-Z][a-z]*").unwrap() };
 }
 
 fn main() {
@@ -152,8 +153,7 @@ impl<'a> CaseManipulator<'a> {
     }
 
     fn break_camel_case(&self) -> Vec<&str> {
-        let regex = Regex::new("[A-Z][a-z]*").unwrap();
-        regex
+        REGEX_CAMEL_CASE_BREAK_DOWN
             .captures_iter(self.text)
             .map(|capture| capture.get(0).unwrap().as_str())
             .collect()
