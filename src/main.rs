@@ -10,9 +10,9 @@ use regex::Regex;
 use std::io;
 
 lazy_static! {
-  static ref REGEX_SNAKE_CASE: Regex = { Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap() };
-  static ref REGEX_CAMEL_CASE: Regex = { Regex::new("^([A-Z][a-z]*)+$").unwrap() };
-  static ref REGEX_KEBAB_CASE: Regex = { Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap() };
+    static ref REGEX_SNAKE_CASE: Regex = { Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap() };
+    static ref REGEX_CAMEL_CASE: Regex = { Regex::new("^([A-Z][a-z]*)+$").unwrap() };
+    static ref REGEX_KEBAB_CASE: Regex = { Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap() };
 }
 
 fn main() {
