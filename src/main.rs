@@ -1,11 +1,19 @@
 extern crate alfred;
 extern crate clap;
 extern crate regex;
+#[macro_use]
+extern crate lazy_static;
 
 use clap::App;
 use core::borrow::Borrow;
 use regex::Regex;
 use std::io;
+
+lazy_static! {
+  static ref REGEX_SNAKE_CASE: Regex = { Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap() };
+  static ref REGEX_CAMEL_CASE: Regex = { Regex::new("^([A-Z][a-z]*)+$").unwrap() };
+  static ref REGEX_KEBAB_CASE: Regex = { Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap() };
+}
 
 fn main() {
     let matches = App::new("sc4...snake-case camel-case converter")
@@ -72,20 +80,17 @@ impl<'a> CaseManipulator<'a> {
 
     /// snake_case
     pub fn is_snake_case(&self) -> bool {
-        let regex = Regex::new("^[a-z]+((_[a-z]+)+$|$)").unwrap();
-        regex.is_match(self.text)
+        REGEX_SNAKE_CASE.is_match(self.text)
     }
 
     /// CamelCase
     pub fn is_camel_case(&self) -> bool {
-        let regex = Regex::new("^([A-Z][a-z]*)+$").unwrap();
-        regex.is_match(self.text)
+        REGEX_CAMEL_CASE.is_match(self.text)
     }
 
     /// kebab-case
     pub fn is_kebab_case(&self) -> bool {
-        let regex = Regex::new("^[a-z]+((-[a-z]+)+$|$)").unwrap();
-        regex.is_match(self.text)
+        REGEX_KEBAB_CASE.is_match(self.text)
     }
 
     /// what case the text is
@@ -102,7 +107,8 @@ impl<'a> CaseManipulator<'a> {
     }
 
     pub fn convert_into(&mut self, case: Cases) -> String {
-        let mut joined = String::new();
+        // just initializing with capacity of double of the length
+        let mut joined = String::with_capacity(self.text.len() * 2);
         let items = match self.get_case() {
             Some(case) => match case {
                 Cases::SnakeCase => self.break_snake_case(),
