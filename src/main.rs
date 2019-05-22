@@ -17,7 +17,7 @@ lazy_static! {
 }
 
 fn main() {
-    let matches = App::new("sc4...snake-case camel-case converter")
+    let args = App::new("sc4...snake-case camel-case converter")
         .version("0.1")
         .author("Taiga Nakayama <dora@dora-gt.jp>")
         .about("Converts snake-case to camel-case and vice versa.")
@@ -30,11 +30,11 @@ fn main() {
         )
         .get_matches();
 
-    let input: &str = matches.value_of("INPUT").unwrap();
-    let mut input = input.to_string();
-    let mut cm = CaseManipulator::new(&mut input);
+    let input: &str = args.value_of("INPUT").unwrap();
+    let input = input.to_string();
+    let case_manipulator = CaseManipulator::new(&input);
 
-    let into_case = matches.value_of("case");
+    let into_case = args.value_of("case");
     let into_case: Option<Cases> = match into_case {
         Some(case) => match case {
             "snake" => Some(Cases::SnakeCase),
@@ -44,10 +44,10 @@ fn main() {
         },
         None => None,
     };
-    let into_case = into_case.unwrap_or(cm.get_default_conversion());
-    let converted = cm.convert_into(into_case);
+    let into_case = into_case.unwrap_or(case_manipulator.get_default_conversion());
+    let converted = case_manipulator.convert_into(into_case);
 
-    if matches.is_present("a") {
+    if args.is_present("a") {
         // output for Alfred
         alfred::json::Builder::with_items(&[alfred::ItemBuilder::new(
             "Copy ".to_owned() + &converted + " to Clipboard",
@@ -71,11 +71,11 @@ enum Cases {
 }
 
 struct CaseManipulator<'a> {
-    text: &'a mut str,
+    text: &'a str,
 }
 
 impl<'a> CaseManipulator<'a> {
-    pub fn new(text: &'a mut str) -> Self {
+    pub fn new(text: &'a str) -> Self {
         CaseManipulator { text }
     }
 
@@ -107,7 +107,7 @@ impl<'a> CaseManipulator<'a> {
         }
     }
 
-    pub fn convert_into(&mut self, case: Cases) -> String {
+    pub fn convert_into(&self, case: Cases) -> String {
         // just initializing with capacity of double of the length
         let mut joined = String::with_capacity(self.text.len() * 2);
         let items = match self.get_case() {
